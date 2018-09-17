@@ -8,6 +8,7 @@ float dp_c(float *a, float *b, size_t elems);
 float dp_cmsis(float *a, float *b, size_t elems);
 float variance_c(float *a, size_t elems);
 float variance_cmsis(float *a, size_t elems);
+void 	arm_var_f32 (float32_t *pSrc, uint32_t blockSize, float32_t *pResult);
 
 float f10_array[10] = {48.21, 79.48, 24.27, 28.82, 78.24, 88.49, 31.19, 5.52, 82.70, 77.73};
 
@@ -31,7 +32,7 @@ int main() {
 	
 	//TASK 1
 	int elems = sizeof(f1000_array)/sizeof(f1000_array[0]);
-	float op;
+	float result = 0;
 	
 	//test case w/N=3	
 	float a[] = {2.0, 2.0, 3.0}; 
@@ -42,6 +43,7 @@ int main() {
 	printf("Pure C dot product : %f\n", dp_c(f1000_array, f1000_array, elems));
 	//CMSIS-DSP
 	printf("C: DSP             : %f\n", dp_cmsis(f1000_array,f1000_array, elems));
+	//OR using the function-call: arm_dot_prod_f32(f1000_array,f1000_array,elems,&result); -> same result as Pure C
 	
 	//END OF TASK 1
 	
@@ -51,6 +53,8 @@ int main() {
 	printf("Pure C variance    : %f\n", variance_c(f1000_array,elems));
 	
 	//CMSIS-DSP
+	arm_var_f32(f1000_array,elems, &result);
+	printf("C: DSP variance    : %f\n", result);
 	
 	
 	//END OF TASK 2
@@ -110,6 +114,7 @@ float dp_c(float *a, float *b, size_t elems){
 	return result;
 }
 
+//this function is unnecessary, could've just used the default CMSIS-DP function: void 	arm_dot_prod_f32 (float32_t *pSrcA, float32_t *pSrcB, uint32_t blockSize, float32_t *result)
 float dp_cmsis(float *a, float *b, size_t elems){
 	int i;
 	float interop[1000]; //intermediate output; N=1000
@@ -136,12 +141,8 @@ float variance_c(float *a, size_t elems){
 	}
 	for(i=0;i<elems;i++) {
 		tempvar += pow((a[i]-mean),2);
-		var = tempvar/elems;
+		var = tempvar/(elems-1); //do (elems-1) bc CMSIS library uses the N-1 (sample notation)
 		//printf("debug var %f\n", tempvar);
 	}
 	return var;
-}
-
-float variance_cmsis(float *a, size_t elems){
-	return 0;
 }
