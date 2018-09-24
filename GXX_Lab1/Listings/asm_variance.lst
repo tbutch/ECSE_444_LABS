@@ -1,0 +1,149 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             test, CODE, READONLY
+    2 00000000         
+    3 00000000         
+    4 00000000                 export           asm_variance
+    5 00000000         
+    6 00000000         ; Arguments: R0 = address of first elem of vector
+    7 00000000         ;    R1 = number of elements in vector
+    8 00000000         ;    R2 = address of place to store result
+    9 00000000         ; Description: Starting from the first element in the ar
+                       ray, compute the mean then the variance 
+   10 00000000         asm_variance
+   11 00000000         
+   12 00000000 B470            push             {r4,r5,r6}  ; Save state
+   13 00000002 ED2D 0A05       VPUSH.f32        {s0,s1,s2,s3,s4}
+   14 00000006         
+   15 00000006 EE30 0A40       VSUB.f32         s0, s0, s0  ; Reset S0 to 0. Me
+                                                            an is stored here
+   16 0000000A EE01 1A10       VMOV.f32         s2, r1      ; Load S2 with the 
+                                                            float value of the 
+                                                            # of items in the a
+                                                            rray
+   17 0000000E EEB8 1AC1       VCVT.f32.s32     s2,s2       ; Cast Int to Float
+                                                            
+   18 00000012 F04F 0400       mov              r4,#0       ; Initialize counte
+                                                            r
+   19 00000016 4605            mov              r5, r0      ; save initial arra
+                                                            y address in r5
+   20 00000018         
+   21 00000018         mean
+   22 00000018 F104 0401       add              r4, r4, #1  ; Go through array 
+                                                            forwards
+   23 0000001C EDD5 1A00       VLDR.f32         s3, [r5]    ; load number from 
+                                                            memory
+   24 00000020 F105 0504       add              r5, r5, #4  ; Increment address
+                                                             pointer
+   25 00000024 EE30 0A21       VADD.f32         s0, s0, s3  ; add numbers toget
+                                                            her
+   26 00000028 428C            CMP              r4, r1      ; compare to see wh
+                                                            ich position we are
+                                                             at
+   27 0000002A DBF5            blt              mean        ; If number less th
+                                                            an amount in array,
+                                                             branch
+   28 0000002C         
+   29 0000002C EE80 0A01       VDIV.f32         s0,s0,s2    ; divide result by 
+                                                            # of items in array
+                                                            
+   30 00000030         
+   31 00000030 F04F 0400       mov              r4, #0      ; Reset counter
+   32 00000034 4605            mov              r5, r0      ; Reset address
+   33 00000036 EE70 0AE0       VSUB.f32         s1, s1, s1  ; Reset S1 to 0. Va
+                                                            riance is stored he
+                                                            re
+   34 0000003A         var
+   35 0000003A F104 0401       add              r4, r4, #1  ; Increment counter
+                                                            
+   36 0000003E EDD5 1A00       VLDR.f32         s3,[r5]     ; Load item from ve
+                                                            ctor
+   37 00000042 F105 0504       add              r5, r5,#4   ; Increment address
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+                                                            
+   38 00000046 EE71 1AC0       VSUB.f32         s3, s3, s0  ; Subtract mean fro
+                                                            m sample point
+   39 0000004A EE41 1AA1       VMLA.f32         s3, s3, s3  ; Square sample poi
+                                                            nt
+   40 0000004E EE71 0AA0       VADD.f32         s1, s3, s1  ; Accumulate sum
+   41 00000052 428C            CMP              r4, r1      ; Check if counter 
+                                                            still less than num
+                                                            ber of items in arr
+                                                            ay
+   42 00000054 DBF1            blt              var         ; Branch if not gon
+                                                            e through all items
+                                                            
+   43 00000056         
+   44 00000056 F04F 0601       mov              r6, #1      ; Move 1 into a reg
+                                                            ister
+   45 0000005A EE02 6A10       VMOV.f32         s4, r6      ; Move int 1 to flo
+                                                            at register s4
+   46 0000005E EEB8 2AC2       VCVT.f32.s32     s4, s4      ; Convert int 1 to 
+                                                            float 1
+   47 00000062 EE31 1A42       VSUB.f32         s2, s2, s4  ; Remove 1 from # o
+                                                            f items in array
+   48 00000066 EEC0 0A81       VDIV.f32         s1, s1, s2  ; divide accumulate
+                                                            d sum by N-1 items
+   49 0000006A EDC2 0A00       VSTR.f32         s1, [r2]    ; store result
+   50 0000006E         
+   51 0000006E BC70            pop{r4,r5,r6}                ; Restore state
+   52 00000070 ECBD 0A05       VPOP.f32         {s0,s1,s2,s3,s4}
+   53 00000074 4770            bx               lr
+   54 00000076         
+   55 00000076                 END
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
+erwork --depend=.\objects\asm_variance.d -o.\objects\asm_variance.o -I.\RTE\_GX
+X_Lab1 -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.4.0\CMSIS\Core\Include -IC:\Keil_v5\AR
+M\PACK\ARM\CMSIS\5.4.0\CMSIS\DSP\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.4.0\
+Device\ARM\ARMCM4\Include --predefine="__EVAL SETA 1" --predefine="__UVISION_VE
+RSION SETA 526" --predefine="_RTE_ SETA 1" --predefine="ARMCM4_FP SETA 1" --lis
+t=.\listings\asm_variance.lst asm\asm_variance.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+asm_variance 00000000
+
+Symbol: asm_variance
+   Definitions
+      At line 10 in file asm\asm_variance.s
+   Uses
+      At line 4 in file asm\asm_variance.s
+Comment: asm_variance used once
+mean 00000018
+
+Symbol: mean
+   Definitions
+      At line 21 in file asm\asm_variance.s
+   Uses
+      At line 27 in file asm\asm_variance.s
+Comment: mean used once
+test 00000000
+
+Symbol: test
+   Definitions
+      At line 1 in file asm\asm_variance.s
+   Uses
+      None
+Comment: test unused
+var 0000003A
+
+Symbol: var
+   Definitions
+      At line 34 in file asm\asm_variance.s
+   Uses
+      At line 42 in file asm\asm_variance.s
+Comment: var used once
+4 symbols
+339 symbols in table

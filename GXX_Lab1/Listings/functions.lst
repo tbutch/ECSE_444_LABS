@@ -1,0 +1,90 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             test, CODE, READONLY
+    2 00000000         
+    3 00000000                 export           asm_dot_product
+    4 00000000         
+    5 00000000         ; Arguments: R0 = address of first elem of vector A
+    6 00000000         ;    R1 = address of first elem of vector B
+    7 00000000         ;    R2 = number of elements in vectors
+    8 00000000         ;    R3 = address of place to store result
+    9 00000000         ; Description: Starting from the first elements in the a
+                       rray, compute the dot product
+   10 00000000         asm_dot_product
+   11 00000000 B410            push             {r4}
+   12 00000002 ED2D 0A03       VPUSH.f32        {s0, s1, s2}
+   13 00000006 EE31 1A41       VSUB.f32         s2, s2, s2  ; Set S2 to 0 by su
+                                                            btracting the regis
+                                                            ter from itself
+   14 0000000A         ; lsl r4, r2, #2    ; Quadruple # of items in array, to 
+                       get mem positions
+   15 0000000A         ; sub r4, r4, #4   ; Decrement address to position 3996.
+                       
+   16 0000000A         ; add r0, r0, r4   ; Compute relative addresses
+   17 0000000A         ; add r1, r1, r4   ; Compute relative addresses
+   18 0000000A F04F 0400       mov              r4, #0
+   19 0000000E         loop
+   20 0000000E         ; subs r2, r2, #1   ; Decrement loop counter
+   21 0000000E F104 0401       add              r4, r4, #1
+   22 00000012 ED90 0A00       VLDR.f32         s0, [r0]
+   23 00000016 EDD1 0A00       VLDR.f32         s1, [r1]
+   24 0000001A F100 0004       add              r0, r0, #4
+   25 0000001E F101 0104       add              r1, r1, #4
+   26 00000022 EE60 0A20       VMUL.f32         s1, s0, s1  ; Multiply 2 operan
+                                                            ds
+   27 00000026 EE31 1A20       VADD.f32         s2, s2, s1  ; Accumulate dot pr
+                                                            oduct in S2
+   28 0000002A 4294            CMP              r4, r2
+   29 0000002C DBEF            blt              loop
+   30 0000002E         
+   31 0000002E ED83 1A00       VSTR.f32         s2, [r3]
+   32 00000032         
+   33 00000032 BC10            pop              {r4}
+   34 00000034 ECBD 0A03       VPOP.f32         {s0, s1, s2}
+   35 00000038 4770            bx               lr
+   36 0000003A         
+   37 0000003A         
+   38 0000003A                 END
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
+erwork --depend=.\objects\functions_1.d -o.\objects\functions_1.o -I.\RTE\_GXX_
+Lab1 -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.4.0\CMSIS\Core\Include -IC:\Keil_v5\ARM\
+PACK\ARM\CMSIS\5.4.0\CMSIS\DSP\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.4.0\De
+vice\ARM\ARMCM4\Include --predefine="__EVAL SETA 1" --predefine="__UVISION_VERS
+ION SETA 526" --predefine="_RTE_ SETA 1" --predefine="ARMCM4_FP SETA 1" --list=
+.\listings\functions.lst asm\functions.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+asm_dot_product 00000000
+
+Symbol: asm_dot_product
+   Definitions
+      At line 10 in file asm\functions.s
+   Uses
+      At line 3 in file asm\functions.s
+Comment: asm_dot_product used once
+loop 0000000E
+
+Symbol: loop
+   Definitions
+      At line 19 in file asm\functions.s
+   Uses
+      At line 29 in file asm\functions.s
+Comment: loop used once
+test 00000000
+
+Symbol: test
+   Definitions
+      At line 1 in file asm\functions.s
+   Uses
+      None
+Comment: test unused
+3 symbols
+338 symbols in table
