@@ -24,14 +24,18 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
-	int test_status;
+	
+	// Initialize ADC
+	HAL_ADC_Init(&hadc1);
+	HAL_ADC_Start(&hadc1);
+	
   /* Infinite loop */
   while (1)
   {
 
 		HAL_Delay(100);
 //		HAL_UART_Transmit(&huart1, (uint8_t *)&ch[0], 5, 30000);
-		test_status = UART_Print_String(&huart1, &ch[0], 5);
+		UART_Print_String(&huart1, &temp[0], 17);
   }
 }
 
@@ -40,14 +44,11 @@ Function used to send characters over the UART channel. Uses the HAL_UART_Transm
 **/
 int UART_Print_String(UART_HandleTypeDef * uart_pointer, char * array_ptr, int no_of_items){
 	
-	
 	// Call the function to print to UART
 	HAL_UART_Transmit(uart_pointer, array_ptr, no_of_items, 30000);
-	//HAL_UART_Transmit(uart_pointer, (uint8_t *) &array_ptr, no_of_items, 30000);
 	if(uart_pointer->gState != 0xE0U) {
 		return 1;
 	}
-
 	return 0;
 }
 
