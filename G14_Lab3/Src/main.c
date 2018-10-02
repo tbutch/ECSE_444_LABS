@@ -4,18 +4,24 @@
 ADC_HandleTypeDef hadc1;
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_tx;
+uint32_t sensorTemp;
+int tens;
+int ones;
+int realTemp;
+
 
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_adc_init(void);
 
 // Declare UART_Print_String() function
 int UART_Print_String(UART_HandleTypeDef * uart_pointer, char * array_ptr, int no_of_items);
 
-int main(void)
-{
+int main(void){
 	char ch[5] = {'j','o','b','s','\n'};
-	char temp[17]= {'T','e','m','p','e','r','a','t','u','r','e',':',' ','0','0','\r','\n'};
+	char temp[18]= {'T','e','m','p','e','r','a','t','u','r','e',':',' ','0','0','C','\r','\n'};
+
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
@@ -24,18 +30,37 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
+	MX_adc_init();
 	
 	// Initialize ADC
-	HAL_ADC_Init(&hadc1);
-	HAL_ADC_Start(&hadc1);
 	
-  /* Infinite loop */
-  while (1)
-  {
 
+  /* Infinite loop */
+  while (1){
+		
+		HAL_ADC_Start(&hadc1);
+		//if(HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK){
+		sensorTemp = HAL_ADC_GetValue(&hadc1);
+		//HAL_ADC_Stop(&hadc1);
 		HAL_Delay(100);
+		//}
 //		HAL_UART_Transmit(&huart1, (uint8_t *)&ch[0], 5, 30000);
-		UART_Print_String(&huart1, &temp[0], 17);
+		
+		sensorTemp = sensorTemp *(100/256);
+		realTemp =(sensorTemp - 760)/(2.5 + 25);
+		
+		tens = (realTemp/10);
+		ones = (realTemp % 10);
+		
+		tens = tens + '0';
+		ones = ones + '0';
+		
+		temp[13] = tens;
+		temp[14] = ones;
+		
+		
+		UART_Print_String(&huart1, &temp[0], 18);
+
   }
 }
 
@@ -52,6 +77,16 @@ int UART_Print_String(UART_HandleTypeDef * uart_pointer, char * array_ptr, int n
 	return 0;
 }
 
+static void MX_adc_init(){
+	
+	ADC_ChannelConfTypeDef sConfig;
+	
+	hadc1.Instance = ADC1;	
+	HAL_ADC_Init(&hadc1);
+
+	sConfig.Channel=ADC_CHANNEL_TEMPSENSOR;
+	HAL_ADC_ConfigChannel(&hadc1,&sConfig);
+}
 
 void SystemClock_Config(void)
 {
@@ -149,6 +184,7 @@ static void MX_USART1_UART_Init(void)
 static void MX_GPIO_Init(void)
 {
   __HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_ADC_CLK_ENABLE();
 }
 
 
