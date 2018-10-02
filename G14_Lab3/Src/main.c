@@ -9,6 +9,9 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 
+// Declare UART_Print_String() function
+int UART_Print_String(UART_HandleTypeDef * uart_pointer, char * array_ptr, int no_of_items);
+
 int main(void)
 {
 	char ch[5] = {'j','o','b','s','\n'};
@@ -26,10 +29,26 @@ int main(void)
   {
 
 		HAL_Delay(100);
-		HAL_UART_Transmit(&huart1, (uint8_t *)&ch[0], 5, 30000);
-
+//		HAL_UART_Transmit(&huart1, (uint8_t *)&ch[0], 5, 30000);
+		UART_Print_String(&huart1, &ch[0], 5);
   }
 }
+
+/**
+Function used to send characters over the UART channel. Uses the HAL_UART_Transmit() function.
+**/
+int UART_Print_String(UART_HandleTypeDef * uart_pointer, char * array_ptr, int no_of_items){
+	
+	// Call the function to print to UART
+	int status = HAL_UART_Transmit(uart_pointer, array_ptr, no_of_items, 30000);
+	//HAL_UART_Transmit(uart_pointer, (uint8_t *) &array_ptr, no_of_items, 30000);
+	int suh = 0;
+	if (status){
+		return status;
+	}
+	return 0;
+}
+
 
 void SystemClock_Config(void)
 {
