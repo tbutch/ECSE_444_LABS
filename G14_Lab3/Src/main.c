@@ -46,6 +46,7 @@ int UART_Print_String(UART_HandleTypeDef * uart_pointer, char * array_ptr, int n
 	if (status){
 		return status;
 	}
+	suh++;
 	return 0;
 }
 
