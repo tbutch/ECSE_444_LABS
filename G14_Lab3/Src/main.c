@@ -15,6 +15,7 @@ int UART_Print_String(UART_HandleTypeDef * uart_pointer, char * array_ptr, int n
 int main(void)
 {
 	char ch[5] = {'j','o','b','s','\n'};
+	char temp[17]= {'T','e','m','p','e','r','a','t','u','r','e',':',' ','0','0','\r','\n'};
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
@@ -23,14 +24,14 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
-
+	int test_status;
   /* Infinite loop */
   while (1)
   {
 
 		HAL_Delay(100);
 //		HAL_UART_Transmit(&huart1, (uint8_t *)&ch[0], 5, 30000);
-		UART_Print_String(&huart1, &ch[0], 5);
+		test_status = UART_Print_String(&huart1, &ch[0], 5);
   }
 }
 
@@ -39,14 +40,14 @@ Function used to send characters over the UART channel. Uses the HAL_UART_Transm
 **/
 int UART_Print_String(UART_HandleTypeDef * uart_pointer, char * array_ptr, int no_of_items){
 	
+	
 	// Call the function to print to UART
-	int status = HAL_UART_Transmit(uart_pointer, array_ptr, no_of_items, 30000);
+	HAL_UART_Transmit(uart_pointer, array_ptr, no_of_items, 30000);
 	//HAL_UART_Transmit(uart_pointer, (uint8_t *) &array_ptr, no_of_items, 30000);
-	int suh = 0;
-	if (status){
-		return status;
+	if(uart_pointer->gState != 0xE0U) {
+		return 1;
 	}
-	suh++;
+
 	return 0;
 }
 

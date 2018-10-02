@@ -28,13 +28,15 @@ Project File Date:  10/01/2018
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'GXX_Lab3'
 compiling main.c...
-../Src/main.c(43): warning:  #167-D: argument of type "char *" is incompatible with parameter of type "uint8_t *"
-  	int status = HAL_UART_Transmit(uart_pointer, array_ptr, no_of_items, 30000);
-../Src/main.c: 1 warning, 0 errors
+../Src/main.c(26): warning:  #550-D: variable "test_status"  was set but never used
+  	int test_status;
+../Src/main.c(44): warning:  #167-D: argument of type "char *" is incompatible with parameter of type "uint8_t *"
+  	HAL_UART_Transmit(uart_pointer, array_ptr, no_of_items, 30000);
+../Src/main.c: 2 warnings, 0 errors
 linking...
-Program Size: Code=6464 RO-data=496 RW-data=8 ZI-data=1144  
+Program Size: Code=6484 RO-data=496 RW-data=8 ZI-data=1144  
 FromELF: creating hex file...
-"GXX_Lab3\GXX_Lab3.axf" - 0 Error(s), 1 Warning(s).
+"GXX_Lab3\GXX_Lab3.axf" - 0 Error(s), 2 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -57,7 +59,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.1.2
-Build Time Elapsed:  00:00:06
+Build Time Elapsed:  00:00:05
 </pre>
 </body>
 </html>
