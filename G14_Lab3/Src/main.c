@@ -4,10 +4,12 @@
 ADC_HandleTypeDef hadc1;
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_tx;
-uint32_t sensorTemp;
+uint8_t sensorTemp;
+//int sensorTemp;
 int tens;
 int ones;
 int realTemp;
+int t;
 
 
 void SystemClock_Config(void);
@@ -19,6 +21,9 @@ static void MX_adc_init(void);
 int UART_Print_String(UART_HandleTypeDef * uart_pointer, char * array_ptr, int no_of_items);
 
 int main(void){
+	char holder;
+	char holder2;
+	//char ch[100];
 	char ch[5] = {'j','o','b','s','\n'};
 	char temp[18]= {'T','e','m','p','e','r','a','t','u','r','e',':',' ','0','0','C','\r','\n'};
 
@@ -37,30 +42,34 @@ int main(void){
 
   /* Infinite loop */
   while (1){
+		HAL_Delay(100);
 		
 		HAL_ADC_Start(&hadc1);
-		//if(HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK){
-		sensorTemp = HAL_ADC_GetValue(&hadc1);
+		if(HAL_ADC_PollForConversion(&hadc1, 3000) == HAL_OK){
+		sensorTemp = (uint8_t)HAL_ADC_GetValue(&hadc1);
 		//HAL_ADC_Stop(&hadc1);
-		HAL_Delay(100);
-		//}
+		
 //		HAL_UART_Transmit(&huart1, (uint8_t *)&ch[0], 5, 30000);
+		//sensorTemp = sensorTemp *(100/256);
+		sensorTemp = __HAL_ADC_CALC_TEMPERATURE(3500,sensorTemp, ADC_RESOLUTION_8B);
+		sensorTemp -= 20;
+		//realTemp =(sensorTemp - 760)/(2.5 + 25);
 		
-		sensorTemp = sensorTemp *(100/256);
-		realTemp =(sensorTemp - 760)/(2.5 + 25);
+		//tens = (realTemp/10);
+		tens = (sensorTemp/10);
+		ones = sensorTemp-(tens*10);
+		//ones = (realTemp % 10);
 		
-		tens = (realTemp/10);
-		ones = (realTemp % 10);
+		//holder = tens + '0';
+		//holder2 = ones + '0';
 		
-		tens = tens + '0';
-		ones = ones + '0';
-		
-		temp[13] = tens;
-		temp[14] = ones;
-		
+		temp[13] = tens + '0';
+		temp[14] = ones + '0';
 		
 		UART_Print_String(&huart1, &temp[0], 18);
+		//HAL_UART_Transmit(&huart1, (uint8_t *)&temp[0], 18, 3000);
 
+		}
   }
 }
 
@@ -78,14 +87,26 @@ int UART_Print_String(UART_HandleTypeDef * uart_pointer, char * array_ptr, int n
 }
 
 static void MX_adc_init(){
-	
 	ADC_ChannelConfTypeDef sConfig;
-	
-	hadc1.Instance = ADC1;	
-	HAL_ADC_Init(&hadc1);
 
-	sConfig.Channel=ADC_CHANNEL_TEMPSENSOR;
-	HAL_ADC_ConfigChannel(&hadc1,&sConfig);
+	hadc1.Instance = ADC1;
+	hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc1.Init.Resolution = ADC_RESOLUTION_8B;
+
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+
+	if(HAL_ADC_Init(&hadc1) != HAL_OK){
+    _Error_Handler(__FILE__, __LINE__);
+  }
+	
+ sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;
+ sConfig.Rank = 1;
+ sConfig.SamplingTime = ADC_SAMPLETIME_12CYCLES_5;
+ sConfig.Offset = 0;
+  if(HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
 }
 
 void SystemClock_Config(void)
