@@ -5,6 +5,8 @@ ADC_HandleTypeDef hadc1;
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_tx;
 uint8_t sensorTemp;
+uint32_t Reload;
+int flag;
 //int sensorTemp;
 int tens;
 int ones;
@@ -43,16 +45,22 @@ int main(void){
   /* Infinite loop */
   while (1){
 		HAL_Delay(100);
+		//HAL_SYSTICK_Config(Reload);
+		//if(Reload >= 0xFFFFFF) {
+			//_Error_Handler(__FILE__, __LINE__);
+		//}
+	//	Reload = 80000000*0.1;
 		
 		HAL_ADC_Start(&hadc1);
 		if(HAL_ADC_PollForConversion(&hadc1, 3000) == HAL_OK){
+		//HAL_ADC_ConvCpltCallback(&hadc1);
 		sensorTemp = (uint8_t)HAL_ADC_GetValue(&hadc1);
 		//HAL_ADC_Stop(&hadc1);
 		
 //		HAL_UART_Transmit(&huart1, (uint8_t *)&ch[0], 5, 30000);
 		//sensorTemp = sensorTemp *(100/256);
-		sensorTemp = __HAL_ADC_CALC_TEMPERATURE(3500,sensorTemp, ADC_RESOLUTION_8B);
-		sensorTemp -= 20;
+		sensorTemp = __HAL_ADC_CALC_TEMPERATURE(3300,sensorTemp, ADC_RESOLUTION_8B);
+		//sensorTemp -= 20; //for calibration
 		//realTemp =(sensorTemp - 760)/(2.5 + 25);
 		
 		//tens = (realTemp/10);
@@ -68,8 +76,8 @@ int main(void){
 		
 		UART_Print_String(&huart1, &temp[0], 18);
 		//HAL_UART_Transmit(&huart1, (uint8_t *)&temp[0], 18, 3000);
-
 		}
+
   }
 }
 
@@ -103,6 +111,7 @@ static void MX_adc_init(){
  sConfig.Rank = 1;
  sConfig.SamplingTime = ADC_SAMPLETIME_12CYCLES_5;
  sConfig.Offset = 0;
+	
   if(HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
