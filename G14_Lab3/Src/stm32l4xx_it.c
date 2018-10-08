@@ -36,6 +36,7 @@
 #include "stm32l4xx_it.h"
 
 /* USER CODE BEGIN 0 */
+extern int flag;
 
 /* USER CODE END 0 */
 
@@ -178,12 +179,11 @@ void SysTick_Handler(void)
   /* USER CODE BEGIN SysTick_IRQn 0 */
 
   /* USER CODE END SysTick_IRQn 0 */
-	extern int flag;
-	flag = 1;
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
+	
   /* USER CODE BEGIN SysTick_IRQn 1 */
-
+	flag = 1;
   /* USER CODE END SysTick_IRQn 1 */
 }
 
