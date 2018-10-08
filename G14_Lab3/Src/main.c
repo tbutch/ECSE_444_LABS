@@ -5,7 +5,6 @@ ADC_HandleTypeDef hadc1;
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_tx;
 uint8_t sensorTemp;
-//int sensorTemp;
 int tens;
 int ones;
 int realTemp;
@@ -23,12 +22,8 @@ static void MX_adc_init(void);
 int UART_Print_String(UART_HandleTypeDef * uart_pointer, char * array_ptr, int no_of_items);
 
 int main(void){
-	char holder;
-	char holder2;
-	//char ch[100];
 	char ch[5] = {'j','o','b','s','\n'};
 	char temp[18]= {'T','e','m','p','e','r','a','t','u','r','e',':',' ','0','0','C','\r','\n'};
-
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
@@ -37,16 +32,17 @@ int main(void){
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
-	MX_adc_init();
 	
 	// Initialize ADC
-
+	MX_adc_init();
+		
   /* Infinite loop */
   while (1){
 		
+		// Uncomment the HAL_delay if using polling
 		//HAL_Delay(100);
 		
-		// using interrupt
+		// using interrupt: Comment out if statement  to return to polling
 		if(flag == 1) {
 			HAL_ADC_Start(&hadc1);
 			flag = 0;
@@ -57,20 +53,11 @@ int main(void){
 				//HAL_ADC_ConvCpltCallback(&hadc1);
 				sensorTemp = (uint8_t)HAL_ADC_GetValue(&hadc1);
 				//HAL_ADC_Stop(&hadc1);
-				
-				//HAL_UART_Transmit(&huart1, (uint8_t *)&ch[0], 5, 30000);
-				//sensorTemp = sensorTemp *(100/256);
+
 				sensorTemp = __HAL_ADC_CALC_TEMPERATURE(3300,sensorTemp, ADC_RESOLUTION_10B);
-				//sensorTemp -= 20; //for calibration
-				//realTemp =(sensorTemp - 760)/(2.5 + 25);
-				
-				//tens = (realTemp/10);
+
 				tens = (sensorTemp/10);
 				ones = sensorTemp-(tens*10);
-				//ones = (realTemp % 10);
-				
-				//holder = tens + '0';
-				//holder2 = ones + '0';
 				
 				temp[13] = tens + '0';
 				temp[14] = ones + '0';
