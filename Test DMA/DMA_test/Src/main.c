@@ -122,7 +122,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-// dma
+		// dma
 		//HAL_DMA_Start(&hdma_usart1_tx, sensorTemp, (uint32_t)&array, 30);
 		//HAL_Delay(100);
 		
@@ -169,12 +169,11 @@ int main(void)
 					UART_Print_String_DMA(&huart1, &array[0], 30);
 
 					// HAL_UART_Transmit_DMA(&huart1, (uint8_t *) array, 30);
+					//UART_Print_String(&huart1, &array[0], 30);
 					counter = 0;
 				}
 				//UART_Print_String(&huart1, &temp[0], 18);
-				
 				//HAL_UART_Transmit(&huart1, (uint8_t *)&temp[0], 18, 3000);
-			
 			}
 		}
 	
