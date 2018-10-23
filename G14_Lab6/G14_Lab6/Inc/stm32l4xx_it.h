@@ -63,6 +63,8 @@ void EXTI9_5_IRQHandler(void);
 void EXTI15_10_IRQHandler(void);
 void TIM6_DAC_IRQHandler(void);
 void DMA2_Channel5_IRQHandler(void);
+void DFSDM1_FLT0_IRQHandler(void);
+void DFSDM1_FLT1_IRQHandler(void);
 
 #ifdef __cplusplus
 }

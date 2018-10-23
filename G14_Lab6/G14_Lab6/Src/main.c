@@ -110,7 +110,37 @@ int main(void)
   MX_DAC1_Init();
   MX_DFSDM1_Init();
   /* USER CODE BEGIN 2 */
+	uint32_t DFSDM1ClockIn;
+	uint32_t DFSDM2ClockIn;
+	
+	// clock out selections
+	uint32_t DFSDM1ClockOut;
+	uint32_t DFSDM2ClockOut;
+	
+	// Initialize filter values to write to DAC
+	int32_t filt0_value;
+	int32_t filt1_value;
+	
+	// Initialize arrays to load from DFSDM
+	
+	// Initialise different channels
+	// Initialise light to on
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);
+	
+	HAL_DFSDM_FilterRegularStart_IT(&hdfsdm1_filter0);
+	HAL_DFSDM_FilterRegularStart_IT(&hdfsdm1_filter1);
+	
+	HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+	HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
+	
+	// Initialise the DMA channels.
+//	HAL_DMA_Init(&hdma_dfsdm1_flt0);
+//	HAL_DMA_Init(&hdma_dfsdm1_flt1);
+//	HAL_DMA_Init(&hdma_dac_ch1);
+//	HAL_DMA_Init(&hdma_dac_ch2);
 
+	
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -119,7 +149,6 @@ int main(void)
   {
 
   /* USER CODE END WHILE */
-
   /* USER CODE BEGIN 3 */
 
   }
@@ -241,7 +270,7 @@ static void MX_DFSDM1_Init(void)
   hdfsdm1_filter0.Init.RegularParam.FastMode = DISABLE;
   hdfsdm1_filter0.Init.RegularParam.DmaMode = ENABLE;
   hdfsdm1_filter0.Init.FilterParam.SincOrder = DFSDM_FILTER_SINC4_ORDER;
-  hdfsdm1_filter0.Init.FilterParam.Oversampling = 128;
+  hdfsdm1_filter0.Init.FilterParam.Oversampling = 320;
   hdfsdm1_filter0.Init.FilterParam.IntOversampling = 1;
   if (HAL_DFSDM_FilterInit(&hdfsdm1_filter0) != HAL_OK)
   {
@@ -253,7 +282,7 @@ static void MX_DFSDM1_Init(void)
   hdfsdm1_filter1.Init.RegularParam.FastMode = DISABLE;
   hdfsdm1_filter1.Init.RegularParam.DmaMode = ENABLE;
   hdfsdm1_filter1.Init.FilterParam.SincOrder = DFSDM_FILTER_SINC4_ORDER;
-  hdfsdm1_filter1.Init.FilterParam.Oversampling = 128;
+  hdfsdm1_filter1.Init.FilterParam.Oversampling = 320;
   hdfsdm1_filter1.Init.FilterParam.IntOversampling = 1;
   if (HAL_DFSDM_FilterInit(&hdfsdm1_filter1) != HAL_OK)
   {
@@ -263,7 +292,7 @@ static void MX_DFSDM1_Init(void)
   hdfsdm1_channel1.Instance = DFSDM1_Channel1;
   hdfsdm1_channel1.Init.OutputClock.Activation = ENABLE;
   hdfsdm1_channel1.Init.OutputClock.Selection = DFSDM_CHANNEL_OUTPUT_CLOCK_SYSTEM;
-  hdfsdm1_channel1.Init.OutputClock.Divider = 2;
+  hdfsdm1_channel1.Init.OutputClock.Divider = 25;
   hdfsdm1_channel1.Init.Input.Multiplexer = DFSDM_CHANNEL_EXTERNAL_INPUTS;
   hdfsdm1_channel1.Init.Input.DataPacking = DFSDM_CHANNEL_STANDARD_MODE;
   hdfsdm1_channel1.Init.Input.Pins = DFSDM_CHANNEL_FOLLOWING_CHANNEL_PINS;
@@ -271,8 +300,8 @@ static void MX_DFSDM1_Init(void)
   hdfsdm1_channel1.Init.SerialInterface.SpiClock = DFSDM_CHANNEL_SPI_CLOCK_INTERNAL;
   hdfsdm1_channel1.Init.Awd.FilterOrder = DFSDM_CHANNEL_FASTSINC_ORDER;
   hdfsdm1_channel1.Init.Awd.Oversampling = 1;
-  hdfsdm1_channel1.Init.Offset = 0;
-  hdfsdm1_channel1.Init.RightBitShift = 0x00;
+  hdfsdm1_channel1.Init.Offset = -1200;
+  hdfsdm1_channel1.Init.RightBitShift = 24;
   if (HAL_DFSDM_ChannelInit(&hdfsdm1_channel1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -281,7 +310,7 @@ static void MX_DFSDM1_Init(void)
   hdfsdm1_channel2.Instance = DFSDM1_Channel2;
   hdfsdm1_channel2.Init.OutputClock.Activation = ENABLE;
   hdfsdm1_channel2.Init.OutputClock.Selection = DFSDM_CHANNEL_OUTPUT_CLOCK_SYSTEM;
-  hdfsdm1_channel2.Init.OutputClock.Divider = 2;
+  hdfsdm1_channel2.Init.OutputClock.Divider = 25;
   hdfsdm1_channel2.Init.Input.Multiplexer = DFSDM_CHANNEL_EXTERNAL_INPUTS;
   hdfsdm1_channel2.Init.Input.DataPacking = DFSDM_CHANNEL_STANDARD_MODE;
   hdfsdm1_channel2.Init.Input.Pins = DFSDM_CHANNEL_SAME_CHANNEL_PINS;
@@ -289,8 +318,8 @@ static void MX_DFSDM1_Init(void)
   hdfsdm1_channel2.Init.SerialInterface.SpiClock = DFSDM_CHANNEL_SPI_CLOCK_INTERNAL;
   hdfsdm1_channel2.Init.Awd.FilterOrder = DFSDM_CHANNEL_FASTSINC_ORDER;
   hdfsdm1_channel2.Init.Awd.Oversampling = 1;
-  hdfsdm1_channel2.Init.Offset = 0;
-  hdfsdm1_channel2.Init.RightBitShift = 0x00;
+  hdfsdm1_channel2.Init.Offset = -1200;
+  hdfsdm1_channel2.Init.RightBitShift = 20;
   if (HAL_DFSDM_ChannelInit(&hdfsdm1_channel2) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);

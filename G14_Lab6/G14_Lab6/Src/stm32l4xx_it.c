@@ -45,6 +45,8 @@ extern DMA_HandleTypeDef hdma_dac_ch2;
 extern DAC_HandleTypeDef hdac1;
 extern DMA_HandleTypeDef hdma_dfsdm1_flt0;
 extern DMA_HandleTypeDef hdma_dfsdm1_flt1;
+extern DFSDM_Filter_HandleTypeDef hdfsdm1_filter0;
+extern DFSDM_Filter_HandleTypeDef hdfsdm1_filter1;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -299,6 +301,56 @@ void DMA2_Channel5_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Channel5_IRQn 1 */
 
   /* USER CODE END DMA2_Channel5_IRQn 1 */
+}
+
+/**
+* @brief This function handles DFSDM1 filter0 global interrupt.
+*/
+void DFSDM1_FLT0_IRQHandler(void)
+{
+  /* USER CODE BEGIN DFSDM1_FLT0_IRQn 0 */
+
+  /* USER CODE END DFSDM1_FLT0_IRQn 0 */
+  HAL_DFSDM_IRQHandler(&hdfsdm1_filter0);
+  /* USER CODE BEGIN DFSDM1_FLT0_IRQn 1 */
+
+  /* USER CODE END DFSDM1_FLT0_IRQn 1 */
+}
+
+/**
+* @brief This function handles DFSDM1 filter1 global interrupt.
+*/
+void DFSDM1_FLT1_IRQHandler(void)
+{
+  /* USER CODE BEGIN DFSDM1_FLT1_IRQn 0 */
+
+  /* USER CODE END DFSDM1_FLT1_IRQn 0 */
+	int buttonState = HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_13);
+		
+	if(buttonState == 0){
+		
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+		
+		//HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 0);
+		//HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, 0);
+		HAL_DFSDM_IRQHandler(&hdfsdm1_filter1);
+		/* USER CODE BEGIN DFSDM1_FLT1_IRQn 1 */
+		int32_t valueA = HAL_DFSDM_FilterGetRegularValue(&hdfsdm1_filter0,(uint32_t *)1);
+		int32_t valueB = HAL_DFSDM_FilterGetRegularValue(&hdfsdm1_filter1,(uint32_t *)1);
+		char buffer[16];
+		HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, valueA);
+		HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, valueB);
+		
+	} else {
+		// lights off
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
+		// Set voltage sent to dac to zero!
+		HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 0);
+		HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, 0);
+		
+	}
+
+  /* USER CODE END DFSDM1_FLT1_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

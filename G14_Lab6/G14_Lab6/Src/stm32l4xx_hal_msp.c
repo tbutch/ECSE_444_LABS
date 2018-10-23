@@ -211,6 +211,11 @@ void HAL_DFSDM_FilterMspInit(DFSDM_Filter_HandleTypeDef* hdfsdm_filter)
     GPIO_InitStruct.Alternate = GPIO_AF6_DFSDM1;
     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
+    /* DFSDM1 interrupt Init */
+    HAL_NVIC_SetPriority(DFSDM1_FLT0_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DFSDM1_FLT0_IRQn);
+    HAL_NVIC_SetPriority(DFSDM1_FLT1_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DFSDM1_FLT1_IRQn);
   /* USER CODE BEGIN DFSDM1_MspInit 1 */
 
   /* USER CODE END DFSDM1_MspInit 1 */
@@ -313,6 +318,10 @@ void HAL_DFSDM_FilterMspDeInit(DFSDM_Filter_HandleTypeDef* hdfsdm_filter)
     PE9     ------> DFSDM1_CKOUT 
     */
     HAL_GPIO_DeInit(GPIOE, DFSDM1_DATIN2_Pin|DFSDM1_CKOUT_Pin);
+
+    /* DFSDM1 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(DFSDM1_FLT0_IRQn);
+    HAL_NVIC_DisableIRQ(DFSDM1_FLT1_IRQn);
 
     /* DFSDM1 DMA DeInit */
     HAL_DMA_DeInit(hdfsdm_filter->hdmaInj);
