@@ -36,7 +36,6 @@
 #include "stm32l4xx_it.h"
 
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -346,7 +345,7 @@ void DFSDM1_FLT1_IRQHandler(void)
 		HAL_DFSDM_IRQHandler(&hdfsdm1_filter1);
 		/* USER CODE BEGIN DFSDM1_FLT1_IRQn 1 */
 		//int32_t valueA = HAL_DFSDM_FilterGetRegularValue(&hdfsdm1_filter0,(uint32_t *)1);
-		uint32_t valueB = HAL_DFSDM_FilterGetRegularValue(&hdfsdm1_filter1,(uint32_t *)1);
+		valueB = HAL_DFSDM_FilterGetRegularValue(&hdfsdm1_filter1,(uint32_t *)1);
 		//char buffer[16];
 		//HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, valueA);
 		HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, valueB);
