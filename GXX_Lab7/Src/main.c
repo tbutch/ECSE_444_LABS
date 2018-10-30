@@ -50,6 +50,7 @@
 #include "main.h"
 #include "stm32l4xx_hal.h"
 #include "cmsis_os.h"
+#include "stdio.h"
 
 #include "stm32l475e_iot01_accelero.h"
 #include "stm32l475e_iot01_hsensor.h"
@@ -66,6 +67,7 @@
 osThreadId defaultTaskHandle;
 
 int32_t counter = 0;
+int lock = 0;
 osSemaphoreId semaphore_id;
 char buffer[100];
 
@@ -74,6 +76,9 @@ int timer = 0;
 int btnFlag = 0;
 int threadFlag = 0;
 int longPressed = 0;
+int sensor_thread_killed=0;
+
+int tim_flag = 0;
 
 /* USER CODE BEGIN PV */
 
@@ -81,10 +86,14 @@ osThreadId uartTaskHandle;
 osThreadId sensorsTaskHandle;
 osThreadId buttonTaskHandle;
 
+TIM_HandleTypeDef htim2;
+
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef handle;
 static void MX_GPIO_Init(void);
 void UART_init(void);
+
+static void MX_TIM2_Init(void);
 
 int fputc(int ch, FILE *f) {
   while (HAL_OK != HAL_UART_Transmit(&handle, (uint8_t *) &ch, 1, 30000));
@@ -204,15 +213,15 @@ int main(void)
 //  /* add threads, ... */
 //	
 //	// Create UART Thread
-	osThreadDef(uartThread, StartUartTask, osPriorityNormal, 0, 128);
-	uartTaskHandle = osThreadCreate(osThread(uartThread),NULL);
+//	osThreadDef(uartThread, StartUartTask, osPriorityNormal, 0, 128);
+//	uartTaskHandle = osThreadCreate(osThread(uartThread),NULL);
 //	
 //	// Create Sensors thread
 	osThreadDef(sensorThread, StartSensorTask, osPriorityNormal, 0, 128);
 	sensorsTaskHandle = osThreadCreate(osThread(sensorThread), NULL);
 //	
 //	// Create Button Thread
-	osThreadDef(buttonThread, StartButtonTask, osPriorityRealtime, 0, 128);
+	osThreadDef(buttonThread, StartButtonTask, osPriorityNormal, 0, 128);
 	buttonTaskHandle = osThreadCreate(osThread(buttonThread),NULL);
 //	
 //  /* USER CODE END RTOS_THREADS */
@@ -283,7 +292,7 @@ void SystemClock_Config(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
-
+ 
     /**Configure the main internal regulator output voltage 
     */
   if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
@@ -345,6 +354,7 @@ void StartSensorTask(void const * argument){
 	BSP_PSENSOR_Init();
 	
 	
+	
 	// Values for reading
 	int16_t XYZ_Accel[3];
 	float XYZ_Gyro[3];
@@ -352,71 +362,102 @@ void StartSensorTask(void const * argument){
 	float temp;
 	int16_t XYZ_Mag[3];
 	float pressure;
+	
+	// Create UART Printing thread
 
-	if(counter == 1){
-		osDelay(100);
-		BSP_ACCELERO_AccGetXYZ(XYZ_Accel);
-		printf("Accelerometer: X = %d, Y = %d, Z = %d\n\r", XYZ_Accel[0], XYZ_Accel[1], XYZ_Accel[2]);
-	}
+
+		
+		for(;;){
+			
+			if(lock == 0) {
+				lock =1;
+				if(counter == 0){
+					osDelay(200);
+					temp = BSP_TSENSOR_ReadTemp();
+					printf("Temperature: %f\n\r", temp);
+					
+				}
+				else if(counter == 1){
+					osDelay(200);
+					humidity = BSP_HSENSOR_ReadHumidity();
+					printf("Humidity: %f\n\r", humidity);
+				}
+				else if(counter == 2) {
+					osDelay(200);
+					BSP_MAGNETO_GetXYZ(XYZ_Mag);
+					printf("Magnetometer: X= %d, Y= %d, X= %d\n\r",XYZ_Mag[0],XYZ_Mag[1],XYZ_Mag[2]);
+				}
+				else if(counter == 3){
+					osDelay(200);
+					pressure = BSP_PSENSOR_ReadPressure();
+					printf("Pressure: %f\n\r", pressure);	
+				}else if(counter == 4){
+					osDelay(200);
+					BSP_ACCELERO_AccGetXYZ(XYZ_Accel);
+					printf("Accelerometer: X = %d, Y = %d, Z = %d\n\r", XYZ_Accel[0], XYZ_Accel[1], XYZ_Accel[2]);
+				}else if(counter == 5){
+					osDelay(200);
+					BSP_GYRO_GetXYZ(XYZ_Gyro);
+					printf("Gyro: X = %f, Y = %f, Z = %f\n\r", XYZ_Gyro[0], XYZ_Gyro[1], XYZ_Gyro[2]);
+				}
+				lock = 0;
+			}
+}
 	
-	if(counter == 2) {
-		osDelay(100);
-		humidity = BSP_HSENSOR_ReadHumidity();
-		printf("Humidity: %f\n\r", humidity);
-	}
-	else{
-	
-		//for(;;){
-			
-			
-			osDelay(100);
-			BSP_GYRO_GetXYZ(XYZ_Gyro);
-	//		osDelay(100);
-	//		temp = BSP_TSENSOR_ReadTemp();
-	//		osDelay(100);
-	//		BSP_MAGNETO_GetXYZ(XYZ_Mag);
-	//		osDelay(100);
-	//		pressure = BSP_PSENSOR_ReadID();
-	//		osDelay(100);
-			
-			printf("Gyro: X = %f, Y = %f, Z = %f\n\r", XYZ_Gyro[0], XYZ_Gyro[1], XYZ_Gyro[2]);
-	//		printf("Temperature: %f\n\r", temp);
-	//		printf("Magnetometer: X = %d, Y = %d, Z = %d\n\r", XYZ_Mag[0], XYZ_Mag[1], XYZ_Mag[2]);
-	//		printf("Pressure: %f\n\r", pressure);
-			
-		//}
-	}
 }
 
 void StartButtonTask(void const * argument){
-	
+	int initialized = 0;
 	
 	MX_GPIO_Init();
+	//MX_TIM1_Init();
+	
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
 	
-	while(1){
+	for(;;){
+		timer = 0;
 		int buttonState = HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_13);
-		
-		if(buttonState == 0){
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
-			osSemaphoreWait(semaphore_id, osWaitForever);
-			counter++;
-		} else {
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
-			osSemaphoreWait(semaphore_id, osWaitForever);
-			counter = 0;
+		while(!HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_13)){
+			if(tim_flag == 1){
+				// Using systic timer at 80kHz
+				tim_flag = 0;
+				timer++;
+			}
 		}
+		if(timer > 1500){
+			// turn sensor thread off
+			osThreadTerminate(sensorsTaskHandle);
+			sensor_thread_killed=1;
+		}else{
+			if(buttonState == 0){
+				if(sensor_thread_killed==1){
+					sensor_thread_killed=0;
+					osThreadDef(sensorThread, StartSensorTask, osPriorityNormal, 0, 128);
+					sensorsTaskHandle = osThreadCreate(osThread(sensorThread), NULL);
+				}
+				lock=1;
+				osDelay(150);
+				counter++;
+				lock=0;
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+				if(counter == 6){
+					counter = 0;
+				}
+			}else{
+						HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
+			}
+		}		
 	}
-	
-	
 }
 
 void StartUartTask(void const * argument){
 	
 	while(1) {
-		osSemaphoreWait(semaphore_id, osWaitForever);
-		HAL_UART_Transmit(&handle, (uint8_t *) "\n", 1, 30000);
-		osSemaphoreRelease(semaphore_id);
+		int uart_lock = 1;
+		HAL_UART_Transmit(&handle, (uint8_t *) &buffer[0], strlen(buffer), 30000);
+		//HAL_UART_Transmit(&handle, (uint8_t *) "\n", 1, 30000);
+		uart_lock = 0;
+		//printf(buffer,strlen(buffer));
 		osDelay(100);
 	}
 }
@@ -503,6 +544,7 @@ void assert_failed(uint8_t* file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+
 
 /**
   * @}
